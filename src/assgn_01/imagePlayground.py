@@ -16,29 +16,23 @@ def showImage(image: MatLike) -> None:
     cv.destroyAllWindows()
 
 
-# TODO: can use built-in interpolation flag INTER_NEAREST
 def replicationZoom(zoomFactor: float, image: MatLike) -> MatLike:
-    newWidth: int = int(image.shape[1] * zoomFactor)
-    newHeight: int = int(image.shape[0] * zoomFactor)
-    newImage: NDArray = np.zeros(shape=(newHeight, newWidth), dtype=image.dtype)
-
-    # TODO: maybe can use map function or any numpy dStruct(ogrid) for better performance
-    # but nested loop is not that bad
-    for m in range(newHeight):
-        for n in range(newWidth):
-            oldM: int = int(m / zoomFactor)
-            oldN: int = int(n / zoomFactor)
-            newImage[m, n] = image[oldM, oldN]
-    return newImage
-
-
-# TODO: might can resize without calculate new size
-def bilinearZoom(zoomFactor: float, image: MatLike) -> MatLike:
-    newWidth: int = int(image.shape[1] * zoomFactor)
-    newHeight: int = int(image.shape[0] * zoomFactor)
-
     return cv.resize(
-        src=image, dsize=(newWidth, newHeight), interpolation=cv.INTER_LINEAR
+        src=image,
+        dsize=None,
+        fx=zoomFactor,
+        fy=zoomFactor,
+        interpolation=cv.INTER_NEAREST,
+    )
+
+
+def bilinearZoom(zoomFactor: float, image: MatLike) -> MatLike:
+    return cv.resize(
+        src=image,
+        dsize=None,
+        fx=zoomFactor,
+        fy=zoomFactor,
+        interpolation=cv.INTER_LINEAR,
     )
 
 
@@ -85,7 +79,8 @@ def makePowerLawTransformation(c: float, gamma: float):
 
         for m in range(height):
             for n in range(width):
-                newImage[m, n] = np.uint8(min(c * image[m, n] ** gamma, 255))
+                normalizeIntensity: int = image[m, n] // 8
+                newImage[m, n] = np.uint8(min(c * normalizeIntensity**gamma * 255, 255))
         return newImage
 
     return powerLawTransformation
