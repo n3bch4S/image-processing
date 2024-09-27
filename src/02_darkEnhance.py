@@ -1,7 +1,9 @@
 from __future__ import annotations
+from typing import Callable
 
 import cv2 as cv
 import numpy as np
+import matplotlib.pyplot as plt
 
 from cv2.typing import MatLike
 from numpy.typing import NDArray
@@ -25,27 +27,49 @@ fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
 result_set: list[ResultImage] = [
     ResultImage(output_name="01_original", method="", kernel_size=0),
-    ResultImage(output_name="03_global", method="test", kernel_size=0),
-    ResultImage(output_name="05_local_3x3", method="test", kernel_size=3),
-    ResultImage(output_name="07_local_7x7", method="test", kernel_size=7),
-    ResultImage(output_name="09_local_11x11", method="test", kernel_size=11),
-    ResultImage(output_name="11_gamma_5x5", method="test", kernel_size=5),
-    ResultImage(output_name="13_gamma_9x9", method="test", kernel_size=9),
-    ResultImage(output_name="15_gamma_15x15", method="test", kernel_size=15),
+    ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
+    # ResultImage(output_name="03_local_3x3", method="test", kernel_size=3),
+    # ResultImage(output_name="04_local_7x7", method="test", kernel_size=7),
+    # ResultImage(output_name="05_local_11x11", method="test", kernel_size=11),
+    # ResultImage(output_name="06_gamma_5x5", method="test", kernel_size=5),
+    # ResultImage(output_name="07_gamma_9x9", method="test", kernel_size=9),
+    # ResultImage(output_name="08_gamma_15x15", method="test", kernel_size=15),
 ]
 # endregion
 
 
-def global_histogram(image: MatLike):
+def save_histogram(image: MatLike, request: ResultImage) -> None:
+    histogram = cv.calcHist(
+        [image],
+        channels=[0],
+        mask=None,
+        histSize=[max_intensity + 1],
+        ranges=[0, max_intensity + 1],
+    )
+
+    plt.figure()
+    plt.title("Grayscale Histogram")
+    plt.xlabel("Pixel Intensity")
+    plt.ylabel("Frequency")
+    plt.hist(histogram, bins=max_intensity + 1)
+
+    plt.savefig(f"{result_folder}/{request.output_name}_histogram.jpg")
+
+
+def global_histogram(image: MatLike) -> NDArray[np.uint8]:
     histogram: MatLike = cv.calcHist(
-        [image], channels=[0], mask=None, histSize=[256], ranges=[0, 256]
+        [image],
+        channels=[0],
+        mask=None,
+        histSize=[max_intensity + 1],
+        ranges=[0, max_intensity + 1],
     )
     histogram = histogram / image.size
     cdf: NDArray = histogram.cumsum()
-    print(f"cdf: {cdf[-5:]}")
 
     height, width = image.shape
     new_image: NDArray = np.ndarray(image.shape, np.float16)
+
     for i in range(height):
         for j in range(width):
             intensity: np.uint8 = image[i, j]
@@ -55,6 +79,9 @@ def global_histogram(image: MatLike):
 
 
 if __name__ == "__main__":
-    image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
-    image = global_histogram(image)
-    cv.imwrite(filename=f"{result_folder}/gray.jpg", img=image)
+    for request in result_set:
+        image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
+        if request.method == "global_histogram":
+            image = global_histogram(image)
+        cv.imwrite(filename=f"{result_folder}/{request.output_name}.jpg", img=image)
+        save_histogram(image, request)
