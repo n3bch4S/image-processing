@@ -41,22 +41,20 @@ def global_histogram(image: MatLike):
         [image], channels=[0], mask=None, histSize=[256], ranges=[0, 256]
     )
     histogram = histogram / image.size
-
     cdf: NDArray = histogram.cumsum()
-    print(cdf.shape)
-    # # Step 5: Map the intensity levels
-    # equalized_image = (
-    # np.interp(image.flatten(), np.arange(max_intensity + 1), cdf)
-    #     .reshape(image.shape)
-    #     .astype(np.uint8)
-    # )
+    print(f"cdf: {cdf[-5:]}")
 
-    # return equalized_image
-    return image
+    height, width = image.shape
+    new_image: NDArray = np.ndarray(image.shape, np.float16)
+    for i in range(height):
+        for j in range(width):
+            intensity: np.uint8 = image[i, j]
+            new_image[i, j] = cdf[intensity] * max_intensity
+
+    return new_image.astype(np.uint8)
 
 
 if __name__ == "__main__":
     image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
-    global_histogram(image)
+    image = global_histogram(image)
     cv.imwrite(filename=f"{result_folder}/gray.jpg", img=image)
-    # print(type((image[2, 1] * 7.9).astype(np.uint8)))
