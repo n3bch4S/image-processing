@@ -4,6 +4,7 @@ import cv2 as cv
 import numpy as np
 
 from cv2.typing import MatLike
+from numpy.typing import NDArray
 
 
 class ResultImage:
@@ -19,6 +20,7 @@ k1: float = 1
 k2: float = 1
 e: float = 1
 gamma: float = 1
+max_intensity: int = 255
 fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
 result_set: list[ResultImage] = [
@@ -33,6 +35,28 @@ result_set: list[ResultImage] = [
 ]
 # endregion
 
+
+def global_histogram(image: MatLike):
+    histogram: MatLike = cv.calcHist(
+        [image], channels=[0], mask=None, histSize=[256], ranges=[0, 256]
+    )
+    histogram = histogram / image.size
+
+    cdf: NDArray = histogram.cumsum()
+    print(cdf.shape)
+    # # Step 5: Map the intensity levels
+    # equalized_image = (
+    # np.interp(image.flatten(), np.arange(max_intensity + 1), cdf)
+    #     .reshape(image.shape)
+    #     .astype(np.uint8)
+    # )
+
+    # return equalized_image
+    return image
+
+
 if __name__ == "__main__":
     image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
+    global_histogram(image)
     cv.imwrite(filename=f"{result_folder}/gray.jpg", img=image)
+    # print(type((image[2, 1] * 7.9).astype(np.uint8)))
