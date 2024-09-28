@@ -58,21 +58,22 @@ def save_histogram(image: MatLike, request: ResultImage) -> None:
 
 
 def global_histogram(image: MatLike) -> NDArray[np.uint8]:
-    histogram: MatLike = cv.calcHist(
-        [image],
-        channels=[0],
-        mask=None,
-        histSize=[max_intensity + 1],
-        ranges=[0, max_intensity + 1],
+    histogram: MatLike = (
+        cv.calcHist(
+            [image],
+            channels=[0],
+            mask=None,
+            histSize=[max_intensity + 1],
+            ranges=[0, max_intensity + 1],
+        )
+        / image.size
     )
-    histogram = histogram / image.size
     cdf: NDArray = histogram.cumsum()
 
-    height, width = image.shape
-    new_image: NDArray = np.ndarray(image.shape, np.float16)
+    new_image: NDArray = np.zeros_like(image, np.float16)
 
-    for i in range(height):
-        for j in range(width):
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
             intensity: np.uint8 = image[i, j]
             new_image[i, j] = cdf[intensity] * max_intensity
 
