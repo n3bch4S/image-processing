@@ -39,19 +39,20 @@ result_set: list[ResultImage] = [
 
 
 def save_histogram(image: MatLike, request: ResultImage) -> None:
-    histogram = cv.calcHist(
+    histogram: MatLike = cv.calcHist(
         [image],
         channels=[0],
         mask=None,
         histSize=[max_intensity + 1],
         ranges=[0, max_intensity + 1],
     )
+    intensity_range: NDArray = 0.5 + np.arange(max_intensity + 1)
 
     plt.figure()
     plt.title("Grayscale Histogram")
     plt.xlabel("Pixel Intensity")
     plt.ylabel("Frequency")
-    plt.hist(histogram, bins=max_intensity + 1)
+    plt.bar(x=intensity_range, height=histogram.flatten(), width=1)
 
     plt.savefig(f"{result_folder}/{request.output_name}_histogram.jpg")
 
@@ -80,8 +81,11 @@ def global_histogram(image: MatLike) -> NDArray[np.uint8]:
 
 if __name__ == "__main__":
     for request in result_set:
+        print(f"Operating on request: {request.output_name} with {request.method}...")
         image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
         if request.method == "global_histogram":
             image = global_histogram(image)
+        print(f"Saving result...")
         cv.imwrite(filename=f"{result_folder}/{request.output_name}.jpg", img=image)
         save_histogram(image, request)
+        print(f"Request is done.\n")
