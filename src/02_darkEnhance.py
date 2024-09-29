@@ -1,6 +1,3 @@
-from __future__ import annotations
-from typing import Callable
-
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,7 +18,7 @@ k0: float = 1
 k1: float = 1
 k2: float = 1
 e: float = 1
-gamma: float = 1
+local_gamma_bias: float = 0.4
 max_intensity: int = 255
 fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
@@ -108,11 +105,9 @@ def local_gamma_correction(image: MatLike, kernel_size: int) -> NDArray[np.uint8
             ]
             local_mean: np.float16 = np.mean(local_region.astype(np.float16))
 
-            bias: float = 0.1
             local_gamma: np.float16 = (
-                1 - (global_mean - local_mean) / (global_mean) + bias
+                1 - (global_mean - local_mean) / (global_mean) + local_gamma_bias
             )
-
             new_image[i, j] = (
                 np.power(image[i, j] / max_intensity, local_gamma) * max_intensity
             )
