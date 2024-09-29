@@ -14,11 +14,13 @@ class ResultImage:
 
 
 # region config
-k0: float = 1
-k1: float = 1
-k2: float = 1
-e: float = 1
+k0: float = 0.4
+k1: float = 0.01
+k2: float = 0.3
+e: float = 6.0
+
 local_gamma_bias: float = 0.4
+
 max_intensity: int = 255
 fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
@@ -84,8 +86,8 @@ def global_histogram(image: MatLike) -> NDArray[np.uint8]:
 
 
 def local_histogram(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
-    global_mean: np.float16 = np.mean(image.astype(np.float16))
-    global_std: np.float16 = np.std(image.astype(np.float16))
+    global_mean: np.float32 = np.mean(image.astype(np.float32))
+    global_std: np.float32 = np.std(image.astype(np.float32))
 
     pad_width: int = kernel_size // 2
     padded_image: MatLike = cv.copyMakeBorder(
@@ -112,7 +114,7 @@ def local_histogram(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
                 k1 * global_std <= local_std <= k2 * global_std
             )
             new_image[i, j] = (
-                e * image[i, j]
+                np.clip(e * image[i, j], a_min=0, a_max=255)
                 if is_below_global_mean and is_between_global_std
                 else image[i, j]
             )
