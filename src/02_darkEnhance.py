@@ -23,20 +23,20 @@ max_intensity: int = 255
 fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
 result_set: list[ResultImage] = [
-    ResultImage(output_name="01_original", method="", kernel_size=0),
-    ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
-    # ResultImage(output_name="03_local_3x3", method="test", kernel_size=3),
-    # ResultImage(output_name="04_local_7x7", method="test", kernel_size=7),
-    # ResultImage(output_name="05_local_11x11", method="test", kernel_size=11),
-    ResultImage(
-        output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
-    ),
-    ResultImage(
-        output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
-    ),
-    ResultImage(
-        output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
-    ),
+    # ResultImage(output_name="01_original", method="", kernel_size=0),
+    # ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
+    ResultImage(output_name="03_local_3x3", method="local_histogram", kernel_size=3),
+    # ResultImage(output_name="04_local_7x7", method="local_histogram", kernel_size=7),
+    # ResultImage(output_name="05_local_11x11", method="local_histogram", kernel_size=11),
+    # ResultImage(
+    #     output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
+    # ),
+    # ResultImage(
+    #     output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
+    # ),
+    # ResultImage(
+    #     output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
+    # ),
 ]
 # endregion
 
@@ -83,6 +83,43 @@ def global_histogram(image: MatLike) -> NDArray[np.uint8]:
     return new_image.astype(np.uint8)
 
 
+def local_histogram(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
+    global_mean: np.float16 = np.mean(image.astype(np.float16))
+    global_std: np.float16 = np.std(image.astype(np.float16))
+
+    pad_width: int = kernel_size // 2
+    padded_image: MatLike = cv.copyMakeBorder(
+        image,
+        top=pad_width,
+        bottom=pad_width,
+        left=pad_width,
+        right=pad_width,
+        borderType=cv.BORDER_REFLECT,
+    )
+
+    new_image: NDArray = np.zeros_like(image, np.float16)
+
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            local_region: NDArray = padded_image[
+                i : i + kernel_size, j : j + kernel_size
+            ]
+            local_mean: np.float16 = np.mean(local_region.astype(np.float16))
+            local_std: np.float16 = np.std(local_region.astype(np.float16))
+
+            is_below_global_mean: bool = bool(local_mean <= k0 * global_mean)
+            is_between_global_std: bool = bool(
+                k1 * global_std <= local_std <= k2 * global_std
+            )
+            new_image[i, j] = (
+                e * image[i, j]
+                if is_below_global_mean and is_between_global_std
+                else image[i, j]
+            )
+
+    return new_image.astype(np.uint8)
+
+
 def local_gamma_correction(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
     global_mean: np.float16 = np.mean(image.astype(np.float16))
 
@@ -123,6 +160,8 @@ if __name__ == "__main__":
 
         if request.method == "global_histogram":
             image = global_histogram(image)
+        elif request.method == "local_histogram":
+            image = local_histogram(image, request.kernel_size)
         elif request.method == "local_gamma_correction":
             image = local_gamma_correction(image, request.kernel_size)
 
