@@ -15,9 +15,9 @@ class ResultImage:
 
 # region config
 k0: float = 0.4
-k1: float = 0.01
+k1: float = 0.04
 k2: float = 0.3
-e: float = 6.0
+e: float = 5.0
 
 local_gamma_bias: float = 0.4
 
