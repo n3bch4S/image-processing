@@ -25,20 +25,20 @@ max_intensity: int = 255
 fillament: str = "../assets/assgn_02/Filament.jpg"
 result_folder: str = "../result/assgn_02"
 result_set: list[ResultImage] = [
-    # ResultImage(output_name="01_original", method="", kernel_size=0),
-    # ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
+    ResultImage(output_name="01_original", method="", kernel_size=0),
+    ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
     ResultImage(output_name="03_local_3x3", method="local_histogram", kernel_size=3),
-    # ResultImage(output_name="04_local_7x7", method="local_histogram", kernel_size=7),
-    # ResultImage(output_name="05_local_11x11", method="local_histogram", kernel_size=11),
-    # ResultImage(
-    #     output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
-    # ),
-    # ResultImage(
-    #     output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
-    # ),
-    # ResultImage(
-    #     output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
-    # ),
+    ResultImage(output_name="04_local_7x7", method="local_histogram", kernel_size=7),
+    ResultImage(output_name="05_local_11x11", method="local_histogram", kernel_size=11),
+    ResultImage(
+        output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
+    ),
+    ResultImage(
+        output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
+    ),
+    ResultImage(
+        output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
+    ),
 ]
 # endregion
 
@@ -106,8 +106,8 @@ def local_histogram(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
             local_region: NDArray = padded_image[
                 i : i + kernel_size, j : j + kernel_size
             ]
-            local_mean: np.float16 = np.mean(local_region.astype(np.float16))
-            local_std: np.float16 = np.std(local_region.astype(np.float16))
+            local_mean: np.float32 = np.mean(local_region.astype(np.float32))
+            local_std: np.float32 = np.std(local_region.astype(np.float32))
 
             is_below_global_mean: bool = bool(local_mean <= k0 * global_mean)
             is_between_global_std: bool = bool(
