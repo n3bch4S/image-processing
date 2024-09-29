@@ -34,8 +34,12 @@ result_set: list[ResultImage] = [
     ResultImage(
         output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
     ),
-    # ResultImage(output_name="07_gamma_9x9", method="test", kernel_size=9),
-    # ResultImage(output_name="08_gamma_15x15", method="test", kernel_size=15),
+    ResultImage(
+        output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
+    ),
+    ResultImage(
+        output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
+    ),
 ]
 # endregion
 
@@ -83,6 +87,8 @@ def global_histogram(image: MatLike) -> NDArray[np.uint8]:
 
 
 def local_gamma_correction(image: MatLike, kernel_size: int) -> NDArray[np.uint8]:
+    global_mean: np.float16 = np.mean(image.astype(np.float16))
+
     pad_width: int = kernel_size // 2
     padded_image: MatLike = cv.copyMakeBorder(
         image,
@@ -92,27 +98,42 @@ def local_gamma_correction(image: MatLike, kernel_size: int) -> NDArray[np.uint8
         right=pad_width,
         borderType=cv.BORDER_REFLECT,
     )
+
+    new_image: NDArray = np.zeros_like(image, np.float16)
+
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
             local_region: NDArray = padded_image[
                 i : i + kernel_size, j : j + kernel_size
             ]
-            local_mean: np.float64 = np.mean(local_region)
-            # TODO: define gamma as a function at config
-            local_gamma = 1
-    new_image: NDArray = np.zeros_like(image, np.float16)
+            local_mean: np.float16 = np.mean(local_region.astype(np.float16))
+
+            bias: float = 0.1
+            local_gamma: np.float16 = (
+                1 - (global_mean - local_mean) / (global_mean) + bias
+            )
+
+            new_image[i, j] = (
+                np.power(image[i, j] / max_intensity, local_gamma) * max_intensity
+            )
+
     return new_image.astype(np.uint8)
 
 
 if __name__ == "__main__":
     for request in result_set:
         print(f"Operating on request: {request.output_name} with {request.method}...")
+
         image: MatLike = cv.imread(filename=fillament, flags=cv.IMREAD_GRAYSCALE)
+
         if request.method == "global_histogram":
             image = global_histogram(image)
         elif request.method == "local_gamma_correction":
             image = local_gamma_correction(image, request.kernel_size)
+
         print(f"Saving result...")
+
         cv.imwrite(filename=f"{result_folder}/{request.output_name}.jpg", img=image)
         save_histogram(image, request)
+
         print(f"Request is done.\n")
