@@ -1,4 +1,7 @@
+from turtle import distance
 import cv2 as cv
+from matplotlib.figure import Figure
+from networkx import center
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,24 +46,42 @@ result_set: list[ResultImage] = [
 # endregion
 
 
-def ideal_filter(
-    shape: tuple[int, int], r: int, is_low_pass: bool
-) -> NDArray[np.float32]:
+def show(image: NDArray[np.uint8]) -> None:
+    fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(10, 10), layout="constrained")
+    axs[0, 0].imshow(image, cmap="gray")
+    plt.show()
+
+
+def center_distance_map(shape: tuple[int, int]) -> NDArray[np.float32]:
     rows, cols = shape
-    x: NDArray[np.int16] = np.linspace(
-        start=-cols // 2 + 1, stop=cols // 2, num=cols, dtype=np.int16
+    x: NDArray[np.float32] = np.linspace(
+        start=-cols // 2 + 1, stop=cols // 2, num=cols, dtype=np.float32
     )
-    y: NDArray[np.int16] = np.linspace(
-        start=-rows // 2 + 1, stop=rows // 2, num=rows, dtype=np.int16
+    y: NDArray[np.float32] = np.linspace(
+        start=-rows // 2 + 1, stop=rows // 2, num=rows, dtype=np.float32
     )
 
     X, Y = np.meshgrid(x, y)
-    distance: NDArray[np.float32] = np.sqrt(X**2 + Y**2, dtype=np.float32)
+    return np.sqrt(X**2 + Y**2, dtype=np.float32)
+
+
+def ideal_filter(
+    shape: tuple[int, int], radius: int, is_low_pass: bool
+) -> NDArray[np.float32]:
+    distance: NDArray[np.float32] = center_distance_map(shape)
 
     filter_mask: NDArray[np.float32] = np.zeros(shape, dtype=np.float32)
-    filter_mask[distance <= r if is_low_pass else distance > r] = 1
+    filter_mask[distance <= radius if is_low_pass else distance > radius] = 1
 
     return filter_mask
+
+
+def gaussian_filter(
+    shape: tuple[int, int], cutoff: int, is_low_pass: bool
+) -> NDArray[np.float32]:
+    distance_square: NDArray[np.float32] = center_distance_map(shape) ** 2
+
+    return np.exp(-distance_square / (2 * cutoff**2))
 
 
 def main() -> None:
@@ -85,8 +106,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    shape: tuple[int, int] = (6, 7)
-    r: int = 2
-    is_low_pass: bool = True
-    print(ideal_filter(is_low_pass, shape, r))
-    print(ideal_filter(not is_low_pass, shape, r))
+    ideal_mask: NDArray[np.float32] = gaussian_filter(
+        shape=(100, 100), cutoff=10, is_low_pass=True
+    )
+    filter: NDArray[np.uint8] = (ideal_mask * 255).astype(np.uint8)
+    print(filter)
+    show(filter)
