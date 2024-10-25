@@ -80,8 +80,11 @@ def gaussian_filter(
     shape: tuple[int, int], cutoff: int, is_low_pass: bool
 ) -> NDArray[np.float32]:
     distance_square: NDArray[np.float32] = center_distance_map(shape) ** 2
+    low_pass_filter_mask: NDArray[np.float32] = np.exp(
+        -distance_square / (2 * cutoff**2)
+    )
 
-    return np.exp(-distance_square / (2 * cutoff**2))
+    return low_pass_filter_mask if is_low_pass else 1 - low_pass_filter_mask
 
 
 def main() -> None:
@@ -107,7 +110,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     ideal_mask: NDArray[np.float32] = gaussian_filter(
-        shape=(100, 100), cutoff=10, is_low_pass=True
+        shape=(100, 100), cutoff=10, is_low_pass=False
     )
     filter: NDArray[np.uint8] = (ideal_mask * 255).astype(np.uint8)
     print(filter)
