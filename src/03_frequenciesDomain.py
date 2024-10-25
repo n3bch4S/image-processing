@@ -93,7 +93,7 @@ def ideal_high_pass_filter(shape: tuple[int, int], cutoff: int) -> NDArray[np.fl
     distance: NDArray[np.float32] = np.sqrt(X**2 + Y**2, dtype=np.float32)
 
     filter_mask: NDArray[np.float32] = np.zeros(shape, dtype=np.float32)
-    filter_mask[distance <= cutoff] = 1  # Set the low frequencies to 1
+    filter_mask[distance > cutoff] = 1  # Set the low frequencies to 1
 
     return filter_mask
 
@@ -122,4 +122,5 @@ def main() -> None:
 if __name__ == "__main__":
     shape: tuple[int, int] = (6, 7)
     cutoff: int = 2
-    ideal_low_pass_filter(shape, cutoff)
+    print(ideal_low_pass_filter(shape, cutoff))
+    print(ideal_high_pass_filter(shape, cutoff))
