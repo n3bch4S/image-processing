@@ -43,26 +43,9 @@ result_set: list[ResultImage] = [
 # endregion
 
 
-def save_histogram(image: MatLike, request: ResultImage) -> None:
-    histogram: MatLike = cv.calcHist(
-        [image],
-        channels=[0],
-        mask=None,
-        histSize=[max_intensity + 1],
-        ranges=[0, max_intensity + 1],
-    )
-    intensity_range: NDArray = 0.5 + np.arange(max_intensity + 1)
-
-    plt.figure()
-    plt.title("Grayscale Histogram")
-    plt.xlabel("Pixel Intensity")
-    plt.ylabel("Frequency")
-    plt.bar(x=intensity_range, height=histogram.flatten(), width=1)
-
-    plt.savefig(f"{result_folder}/{request.output_name}_histogram.jpg")
-
-
-def ideal_low_pass_filter(shape: tuple[int, int], r: int) -> NDArray[np.float32]:
+def ideal_filter(
+    shape: tuple[int, int], r: int, is_low_pass: bool
+) -> NDArray[np.float32]:
     rows, cols = shape
     x: NDArray[np.int16] = np.linspace(
         start=-cols // 2 + 1, stop=cols // 2, num=cols, dtype=np.int16
@@ -75,25 +58,7 @@ def ideal_low_pass_filter(shape: tuple[int, int], r: int) -> NDArray[np.float32]
     distance: NDArray[np.float32] = np.sqrt(X**2 + Y**2, dtype=np.float32)
 
     filter_mask: NDArray[np.float32] = np.zeros(shape, dtype=np.float32)
-    filter_mask[distance <= r] = 1  # Set the low frequencies to 1
-
-    return filter_mask
-
-
-def ideal_high_pass_filter(shape: tuple[int, int], cutoff: int) -> NDArray[np.float32]:
-    rows, cols = shape
-    x: NDArray[np.int16] = np.linspace(
-        start=-cols // 2 + 1, stop=cols // 2, num=cols, dtype=np.int16
-    )
-    y: NDArray[np.int16] = np.linspace(
-        start=-rows // 2 + 1, stop=rows // 2, num=rows, dtype=np.int16
-    )
-
-    X, Y = np.meshgrid(x, y)
-    distance: NDArray[np.float32] = np.sqrt(X**2 + Y**2, dtype=np.float32)
-
-    filter_mask: NDArray[np.float32] = np.zeros(shape, dtype=np.float32)
-    filter_mask[distance > cutoff] = 1  # Set the low frequencies to 1
+    filter_mask[distance <= r if is_low_pass else distance > r] = 1
 
     return filter_mask
 
@@ -121,6 +86,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     shape: tuple[int, int] = (6, 7)
-    cutoff: int = 2
-    print(ideal_low_pass_filter(shape, cutoff))
-    print(ideal_high_pass_filter(shape, cutoff))
+    r: int = 2
+    is_low_pass: bool = True
+    print(ideal_filter(is_low_pass, shape, r))
+    print(ideal_filter(not is_low_pass, shape, r))
