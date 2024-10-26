@@ -162,21 +162,25 @@ def main() -> None:
 
         for i in range(len(CUTOFFS)):
             cutoff: int = CUTOFFS[i]
+            filter: NDArray[np.float32] = np.zeros((1, 1), dtype=np.float32)
             if request.filter_name == IDEAL_FILTER:
-                filter: NDArray[np.float32] = ideal_filter(
-                    spectrum.shape, cutoff, request.pass_type
-                )
+                filter = ideal_filter(spectrum.shape, cutoff, request.pass_type)
             elif request.filter_name == GAUSSIAN_FILTER:
-                filter: NDArray[np.float32] = gaussian_filter(
-                    spectrum.shape, cutoff, request.pass_type
-                )
-            elif request.filter_name == CUSTOM_FILTER:
-                filter: NDArray[np.float32] = custom_filter(
+                filter = gaussian_filter(spectrum.shape, cutoff, request.pass_type)
+            elif (
+                request.filter_name == CUSTOM_FILTER
+                and request.start_points is not None
+                and request.end_points is not None
+            ):
+                filter = custom_filter(
                     spectrum.shape,
-                    request.start_point,
-                    request.end_point,
+                    request.start_points,
+                    request.end_points,
                     request.pass_type,
                 )
+            else:
+                filter = np.zeros_like(spectrum, np.float32) + 1
+                print(f"No filter use at {i}")
 
             filtered_dft: NDArray[np.complex128] = (dft * filter).astype(np.complex128)
             spectrum = spectrum_of(filtered_dft)
