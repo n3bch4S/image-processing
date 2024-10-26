@@ -46,6 +46,17 @@ result_set: list[ResultImage] = [
 # endregion
 
 
+def scale_intensity(
+    image: NDArray[np.float32],
+    min: np.float32 = np.float32(0.0),
+    max: np.float32 = np.float32(255.0),
+) -> NDArray[np.float32]:
+    image = (image - np.min(image) + min).astype(np.float32)
+    image = image * max / np.max(image).astype(np.float32)
+
+    return image
+
+
 def show(image: NDArray[np.uint8]) -> None:
     fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(10, 10), layout="constrained")
     axs[0, 0].imshow(image, cmap="gray")
