@@ -93,15 +93,17 @@ def center_distance_map(shape: tuple[int, int]) -> NDArray[np.float32]:
 
 def custom_filter(
     shape: tuple[int, int],
-    start_point: tuple[int, int],
-    end_point: tuple[int, int],
+    start_points: list[tuple[int, int]],
+    end_points: list[tuple[int, int]],
     pass_type: str,
 ) -> NDArray[np.float32]:
-    x_start, y_start = start_point
-    x_end, y_end = end_point
-
     filter_mask: NDArray[np.float32] = np.zeros(shape, np.float32)
-    filter_mask[x_start:x_end, y_start:y_end] = 1
+
+    for i in range(len(start_points)):
+        x_start, y_start = start_points[i]
+        x_end, y_end = end_points[i]
+
+        filter_mask[x_start:x_end, y_start:y_end] = 1
 
     return filter_mask if pass_type == LOW_PASS else 1 - filter_mask
 
