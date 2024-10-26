@@ -7,38 +7,42 @@ from numpy.typing import NDArray
 
 
 class ResultImage:
-    def __init__(self, output_name: str, method: str, kernel_size: int):
-        self.output_name = output_name
-        self.method = method
-        self.kernel_size = kernel_size
+    def __init__(self, filename: str, filter_name: str, is_low_pass: bool):
+        self.filename = filename
+        self.filter_name = filter_name
+        self.is_low_pass = is_low_pass
 
 
 # region config
-k0: float = 0.4
-k1: float = 0.04
-k2: float = 0.3
-e: float = 5.0
+NOISY_TOM_JERRY = "Noisy_Tom_Jerry"
+NOISY_WHIRLPOOL = "Noisy_whirlpool"
+NOISY_GALAXY_3 = "Noisy_galaxy3"
 
-local_gamma_bias: float = 0.4
+IDEAL_FILTER = "IDEAL_FILTER"
+GAUSSIAN_FILTER = "GAUSSIAN_FILTER"
 
-max_intensity: int = 255
-fillament: str = "../assets/assgn_02/Filament.jpg"
-result_folder: str = "../result/assgn_02"
+LOW_PASS: bool = True
+HIGH_PASS: bool = False
+
 result_set: list[ResultImage] = [
-    ResultImage(output_name="01_original", method="", kernel_size=0),
-    ResultImage(output_name="02_global", method="global_histogram", kernel_size=0),
-    ResultImage(output_name="03_local_3x3", method="local_histogram", kernel_size=3),
-    ResultImage(output_name="04_local_7x7", method="local_histogram", kernel_size=7),
-    ResultImage(output_name="05_local_11x11", method="local_histogram", kernel_size=11),
-    ResultImage(
-        output_name="06_gamma_5x5", method="local_gamma_correction", kernel_size=5
-    ),
-    ResultImage(
-        output_name="07_gamma_9x9", method="local_gamma_correction", kernel_size=9
-    ),
-    ResultImage(
-        output_name="08_gamma_15x15", method="local_gamma_correction", kernel_size=15
-    ),
+    # 1.a
+    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, LOW_PASS),
+    ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, LOW_PASS),
+    ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
+    # 1.b
+    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, HIGH_PASS),
+    ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, HIGH_PASS),
+    ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, HIGH_PASS),
+    # 2.a
+    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, LOW_PASS),
+    ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, LOW_PASS),
+    ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, LOW_PASS),
+    # 2.b
+    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
+    ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
+    ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
+    # 3
+    ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
 ]
 # endregion
 
