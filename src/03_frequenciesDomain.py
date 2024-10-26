@@ -98,6 +98,16 @@ def gaussian_filter(
     return low_pass_filter_mask if is_low_pass else 1 - low_pass_filter_mask
 
 
+def dft_and_spectrum(
+    image: NDArray[np.uint8],
+) -> tuple[NDArray[np.complex128], NDArray[np.uint8]]:
+    dft: NDArray[np.complex128] = np.fft.fft2(image)
+    dft = np.fft.fftshift(dft)
+    spectrum: NDArray[np.float32] = np.log(np.abs(dft)).astype(np.float32)
+    spectrum = scale_intensity(spectrum)
+    return dft, spectrum.astype(np.uint8)
+
+
 def main() -> None:
     for request in result_set:
         print(f"Operating on request: {request.output_name} with {request.method}...")
