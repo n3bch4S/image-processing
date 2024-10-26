@@ -38,21 +38,21 @@ CUTOFFS: list[int] = [10, 50, 100]
 
 RESULT_SET: list[ResultImage] = [
     # 1.a
-    # ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, LOW_PASS),
-    # ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, LOW_PASS),
-    # ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
+    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, LOW_PASS),
+    ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, LOW_PASS),
+    ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
     # 1.b
-    # ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, HIGH_PASS),
-    # ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, HIGH_PASS),
-    # ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, HIGH_PASS),
+    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, HIGH_PASS),
+    ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, HIGH_PASS),
+    ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, HIGH_PASS),
     # 2.a
-    # ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, LOW_PASS),
-    # ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, LOW_PASS),
-    # ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, LOW_PASS),
+    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, LOW_PASS),
+    ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, LOW_PASS),
+    ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, LOW_PASS),
     # 2.b
-    # ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
-    # ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
-    # ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
+    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
+    ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
+    ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
     # 3
     ResultImage(
         NOISY_TOM_JERRY,
@@ -65,16 +65,34 @@ RESULT_SET: list[ResultImage] = [
         NOISY_WHIRLPOOL,
         CUSTOM_FILTER,
         HIGH_PASS,
-        start_points=[],
-        end_points=[],
+        start_points=[
+            (128, 184),
+            (128, 194),
+            (138, 184),
+            (138, 194),
+            (118, 173),
+            (117, 203),
+            (147, 172),
+            (147, 202),
+        ],
+        end_points=[
+            (131, 187),
+            (131, 197),
+            (141, 187),
+            (141, 197),
+            (121, 179),
+            (121, 208),
+            (150, 178),
+            (150, 208),
+        ],
     ),
-    # ResultImage(
-    #     NOISY_TOM_JERRY,
-    #     CUSTOM_FILTER,
-    #     LOW_PASS,
-    #     start_point=(200, 200),
-    #     end_point=(201, 201),
-    # ),
+    ResultImage(
+        NOISY_GALAXY_3,
+        CUSTOM_FILTER,
+        HIGH_PASS,
+        start_points=[(288, 279), (288, 319)],
+        end_points=[(292, 282), (292, 322)],
+    ),
 ]
 # endregion
 
