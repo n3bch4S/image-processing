@@ -54,7 +54,27 @@ RESULT_SET: list[ResultImage] = [
     # ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
     # ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
     # 3
-    # ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
+    ResultImage(
+        NOISY_TOM_JERRY,
+        CUSTOM_FILTER,
+        HIGH_PASS,
+        start_points=[(147, 299), (162, 299)],
+        end_points=[(158, 302), (173, 302)],
+    ),
+    ResultImage(
+        NOISY_WHIRLPOOL,
+        CUSTOM_FILTER,
+        HIGH_PASS,
+        start_points=[],
+        end_points=[],
+    ),
+    # ResultImage(
+    #     NOISY_TOM_JERRY,
+    #     CUSTOM_FILTER,
+    #     LOW_PASS,
+    #     start_point=(200, 200),
+    #     end_point=(201, 201),
+    # ),
 ]
 # endregion
 
