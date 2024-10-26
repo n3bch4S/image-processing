@@ -1,7 +1,4 @@
-from turtle import distance
 import cv2 as cv
-from matplotlib.figure import Figure
-from networkx import center
 import numpy as np
 import matplotlib.pyplot as plt
 
