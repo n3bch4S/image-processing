@@ -131,9 +131,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    ideal_mask: NDArray[np.float32] = gaussian_filter(
-        shape=(100, 100), cutoff=10, is_low_pass=False
-    )
-    filter: NDArray[np.uint8] = (ideal_mask * 255).astype(np.uint8)
-    print(filter)
-    show(filter)
+    main()
