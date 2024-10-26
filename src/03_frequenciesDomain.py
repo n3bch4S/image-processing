@@ -7,10 +7,19 @@ from numpy.typing import NDArray
 
 
 class ResultImage:
-    def __init__(self, filename: str, filter_name: str, pass_type: str):
+    def __init__(
+        self,
+        filename: str,
+        filter_name: str,
+        pass_type: str,
+        start_point: tuple[int, int] | None = None,
+        end_point: tuple[int, int] | None = None,
+    ):
         self.filename = filename
         self.filter_name = filter_name
         self.pass_type = pass_type
+        self.start_point = start_point
+        self.end_point = end_point
 
 
 # region config
@@ -18,6 +27,7 @@ NOISY_TOM_JERRY = "Noisy_Tom_Jerry"
 NOISY_WHIRLPOOL = "Noisy_whirlpool"
 NOISY_GALAXY_3 = "Noisy_galaxy3"
 
+CUSTOM_FILTER = "CUSTOM_FILTER"
 IDEAL_FILTER = "IDEAL_FILTER"
 GAUSSIAN_FILTER = "GAUSSIAN_FILTER"
 
@@ -28,19 +38,19 @@ CUTOFFS: list[int] = [10, 50, 100]
 
 RESULT_SET: list[ResultImage] = [
     # 1.a
-    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, LOW_PASS),
+    # ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, LOW_PASS),
     # ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, LOW_PASS),
     # ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, LOW_PASS),
     # 1.b
-    ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, HIGH_PASS),
+    # ResultImage(NOISY_TOM_JERRY, IDEAL_FILTER, HIGH_PASS),
     # ResultImage(NOISY_WHIRLPOOL, IDEAL_FILTER, HIGH_PASS),
     # ResultImage(NOISY_GALAXY_3, IDEAL_FILTER, HIGH_PASS),
     # 2.a
-    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, LOW_PASS),
+    # ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, LOW_PASS),
     # ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, LOW_PASS),
     # ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, LOW_PASS),
     # 2.b
-    ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
+    # ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
     # ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
     # ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
     # 3
@@ -79,6 +89,21 @@ def center_distance_map(shape: tuple[int, int]) -> NDArray[np.float32]:
 
     X, Y = np.meshgrid(x, y)
     return np.sqrt(X**2 + Y**2, dtype=np.float32)
+
+
+def custom_filter(
+    shape: tuple[int, int],
+    start_point: tuple[int, int],
+    end_point: tuple[int, int],
+    pass_type: str,
+) -> NDArray[np.float32]:
+    x_start, y_start = start_point
+    x_end, y_end = end_point
+
+    filter_mask: NDArray[np.float32] = np.zeros(shape, np.float32)
+    filter_mask[x_start:x_end, y_start:y_end] = 1
+
+    return filter_mask if pass_type == LOW_PASS else 1 - filter_mask
 
 
 def ideal_filter(
@@ -141,9 +166,16 @@ def main() -> None:
                 filter: NDArray[np.float32] = ideal_filter(
                     spectrum.shape, cutoff, request.pass_type
                 )
-            else:
+            elif request.filter_name == GAUSSIAN_FILTER:
                 filter: NDArray[np.float32] = gaussian_filter(
                     spectrum.shape, cutoff, request.pass_type
+                )
+            elif request.filter_name == CUSTOM_FILTER:
+                filter: NDArray[np.float32] = custom_filter(
+                    spectrum.shape,
+                    request.start_point,
+                    request.end_point,
+                    request.pass_type,
                 )
 
             filtered_dft: NDArray[np.complex128] = (dft * filter).astype(np.complex128)
