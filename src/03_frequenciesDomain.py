@@ -23,13 +23,15 @@ class ResultImage:
 
 
 # region config
-NOISY_TOM_JERRY = "Noisy_Tom_Jerry"
-NOISY_WHIRLPOOL = "Noisy_whirlpool"
-NOISY_GALAXY_3 = "Noisy_galaxy3"
+WANT_DISPLAY: bool = False
 
-CUSTOM_FILTER = "CUSTOM_FILTER"
-IDEAL_FILTER = "IDEAL_FILTER"
-GAUSSIAN_FILTER = "GAUSSIAN_FILTER"
+NOISY_TOM_JERRY: str = "Noisy_Tom_Jerry"
+NOISY_WHIRLPOOL: str = "Noisy_whirlpool"
+NOISY_GALAXY_3: str = "Noisy_galaxy3"
+
+CUSTOM_FILTER: str = "CUSTOM_FILTER"
+IDEAL_FILTER: str = "IDEAL_FILTER"
+GAUSSIAN_FILTER: str = "GAUSSIAN_FILTER"
 
 LOW_PASS: str = "LOW_PASS"
 HIGH_PASS: str = "HIGH_PASS"
@@ -53,7 +55,9 @@ RESULT_SET: list[ResultImage] = [
     ResultImage(NOISY_TOM_JERRY, GAUSSIAN_FILTER, HIGH_PASS),
     ResultImage(NOISY_WHIRLPOOL, GAUSSIAN_FILTER, HIGH_PASS),
     ResultImage(NOISY_GALAXY_3, GAUSSIAN_FILTER, HIGH_PASS),
-    # 3
+]
+
+RESULT_SET_3: list[ResultImage] = [
     ResultImage(
         NOISY_TOM_JERRY,
         CUSTOM_FILTER,
@@ -188,7 +192,36 @@ def spatial_from(dft: NDArray[np.complex128]) -> NDArray[np.uint8]:
     return scale_intensity(real_part).astype(np.uint8)
 
 
+def classify_filter(
+    request: ResultImage, shape: tuple[int, int], cutoffs: list[int], index: int
+) -> NDArray[np.float32]:
+    cutoff: int = CUTOFFS[index]
+    filter: NDArray[np.float32] = np.zeros((1, 1), dtype=np.float32)
+
+    if request.filter_name == IDEAL_FILTER:
+        filter = ideal_filter(shape, cutoff, request.pass_type)
+    elif request.filter_name == GAUSSIAN_FILTER:
+        filter = gaussian_filter(shape, cutoff, request.pass_type)
+    elif (
+        request.filter_name == CUSTOM_FILTER
+        and request.start_points is not None
+        and request.end_points is not None
+    ):
+        filter = custom_filter(
+            shape,
+            request.start_points,
+            request.end_points,
+            request.pass_type,
+        )
+    else:
+        filter = np.zeros(shape, np.float32) + 1
+        print(f"No filter use at {index}")
+
+    return filter
+
+
 def main() -> None:
+    # 1-2
     for request in RESULT_SET:
         print(f"Operating on request: {request.filename} with {request.filter_name}...")
 
@@ -201,47 +234,76 @@ def main() -> None:
         plot_image(spectrum, f"Spectrum {request.filename}", 4, 3, 2)
 
         for i in range(len(CUTOFFS)):
-            cutoff: int = CUTOFFS[i]
-            filter: NDArray[np.float32] = np.zeros((1, 1), dtype=np.float32)
-            if request.filter_name == IDEAL_FILTER:
-                filter = ideal_filter(spectrum.shape, cutoff, request.pass_type)
-            elif request.filter_name == GAUSSIAN_FILTER:
-                filter = gaussian_filter(spectrum.shape, cutoff, request.pass_type)
-            elif (
-                request.filter_name == CUSTOM_FILTER
-                and request.start_points is not None
-                and request.end_points is not None
-            ):
-                filter = custom_filter(
-                    spectrum.shape,
-                    request.start_points,
-                    request.end_points,
-                    request.pass_type,
-                )
-            else:
-                filter = np.zeros_like(spectrum, np.float32) + 1
-                print(f"No filter use at {i}")
-
+            filter: NDArray[np.float32] = classify_filter(
+                request, spectrum.shape, CUTOFFS, i
+            )
             filtered_dft: NDArray[np.complex128] = (dft * filter).astype(np.complex128)
             spectrum = spectrum_of(filtered_dft)
             image = spatial_from(filtered_dft)
 
-            cell: int = 3 * (i + 1)
+            cell_at: int = 3 * (i + 1)
             plot_image(
                 scale_intensity(filter).astype(np.uint8),
-                f"{request.pass_type} {request.filter_name} cutoff={cutoff}",
-                4,
-                3,
-                cell + 1,
+                f"{request.pass_type} {request.filter_name} cutoff={CUTOFFS[i]}",
+                *(4, 3, cell_at + 1),
             )
-            plot_image(spectrum, f"Filtered Spectrum", 4, 3, cell + 2)
-            plot_image(image, f"After Filtered", 4, 3, cell + 3)
+            plot_image(spectrum, f"Filtered Spectrum", *(4, 3, cell_at + 2))
+            plot_image(image, f"After Filtered", *(4, 3, cell_at + 3))
 
         print(f"Saving result...")
         plt.savefig(
             f"../result/assignment_03/{request.pass_type}_{request.filter_name}_{request.filename}.jpg"
         )
-        plt.show()
+        plt.show() if WANT_DISPLAY else 0
+
+        print(f"Request is done.\n")
+
+    # 3
+    for request in RESULT_SET_3:
+        print(f"Operating on request: {request.filename} with {request.filter_name}...")
+
+        path: str = f"../assets/assignment_03/{request.filename}.jpg"
+        image: NDArray[np.uint8] = cv.imread(path, cv.IMREAD_GRAYSCALE).astype(np.uint8)
+        dft, spectrum = dft_and_spectrum(image)
+
+        plt.figure(figsize=(10, 9))
+        plot_image(image, f"Original {request.filename}", 2, 3, 1)
+        plot_image(spectrum, f"Spectrum {request.filename}", 2, 3, 2)
+
+        filter: NDArray[np.float32] = np.zeros((1, 1), dtype=np.float32)
+
+        if (
+            request.filter_name == CUSTOM_FILTER
+            and request.start_points is not None
+            and request.end_points is not None
+        ):
+            filter = custom_filter(
+                spectrum.shape,
+                request.start_points,
+                request.end_points,
+                request.pass_type,
+            )
+        else:
+            filter = np.zeros_like(spectrum, np.float32) + 1
+            print(f"No filter use for {request.filter_name}")
+
+        filtered_dft: NDArray[np.complex128] = (dft * filter).astype(np.complex128)
+        spectrum = spectrum_of(filtered_dft)
+        image = spatial_from(filtered_dft)
+
+        plot_image(
+            scale_intensity(filter).astype(np.uint8),
+            f"{request.pass_type} {request.filter_name}",
+            *(2, 3, 4),
+        )
+        plot_image(spectrum, f"Filtered Spectrum", *(2, 3, 5))
+        plot_image(image, f"After Filtered", *(2, 3, 6))
+
+        print(f"Saving result...")
+        plt.savefig(
+            f"../result/assignment_03/{request.pass_type}_{request.filter_name}_{request.filename}.jpg"
+        )
+        plt.show() if WANT_DISPLAY else 0
 
         print(f"Request is done.\n")
 
