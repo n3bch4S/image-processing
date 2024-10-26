@@ -12,14 +12,14 @@ class ResultImage:
         filename: str,
         filter_name: str,
         pass_type: str,
-        start_point: tuple[int, int] | None = None,
-        end_point: tuple[int, int] | None = None,
+        start_points: list[tuple[int, int]] | None = None,
+        end_points: list[tuple[int, int]] | None = None,
     ):
         self.filename = filename
         self.filter_name = filter_name
         self.pass_type = pass_type
-        self.start_point = start_point
-        self.end_point = end_point
+        self.start_points = start_points
+        self.end_points = end_points
 
 
 # region config
